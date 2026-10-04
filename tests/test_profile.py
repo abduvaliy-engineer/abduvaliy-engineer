@@ -231,6 +231,41 @@ class Terminal(unittest.TestCase):
         self.assertTrue(all(v >= 0 for v in moves), "the eye should only look right")
         self.assertEqual(max(moves), cards.LOOK * 8)
 
+    def test_blink_swaps_pixel_frames_instead_of_squashing(self):
+        out = self.svg()
+        self.assertFalse("scale" in out, "the eye must not squash or flip")
+
+        def frames(name):
+            block = re.search(r"@keyframes %s\{((?:[\d.]+%%\{opacity:[\d.]+\})+)\}" % name, out)
+            self.assertIsNotNone(block, f"no {name} keyframes")
+            return [(float(p), float(v)) for p, v in re.findall(r"([\d.]+)%\{opacity:([\d.]+)\}",
+                                                                 block.group(1) if block else "")]
+
+        def at(keys, t):  # step-end: hold each keyframe's value until the next one
+            return [v for p, v in keys if p <= t][-1]
+
+        keys = {name: frames(name) for name in ("open", "half", "shut")}
+        shown = {name: 0.0 for name in keys}
+        for i in range(2000):  # every 0.05% of the loop
+            t = i / 20
+            visible = [name for name in keys if at(keys[name], t) == 1]
+            self.assertEqual(len(visible), 1, f"at {t}% visible frames: {visible}")
+            shown[visible[0]] += cards.LOOP * 1000 / 2000
+        self.assertGreater(shown["shut"], 100, "the eye should be fully closed for a moment")
+        self.assertLess(shown["half"] + shown["shut"], 400, "a blink is quick")
+        self.assertGreater(cards.BLINK[0], cards.GLANCE[3], "blink only while looking straight ahead")
+        # with motion off, only the open eye shows
+        art, _, _, _ = cards.eye(svg.THEMES["dark"])
+        self.assertIn('class="half" opacity="0"', art)
+        self.assertIn('class="shut" opacity="0"', art)
+
+    def test_closed_eye_is_a_thin_lid_line(self):
+        art, _, _, _ = cards.eye(svg.THEMES["dark"])
+        shut = re.search(r'<g class="shut"[^>]*>(.*?)</g>', art)
+        self.assertIsNotNone(shut)
+        rows = {float(y) for y in re.findall(r'y="([\d.]+)"', shut.group(1) if shut else "")}
+        self.assertLessEqual(len(rows), 2, "closed eye should be a line, not a squashed eye")
+
     def test_even_padding_and_rhythm(self):
         root = ET.fromstring(self.svg())
         h = float(root.get("height") or 0)
