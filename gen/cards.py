@@ -51,7 +51,11 @@ def ago(stamp, now):
 
 # ---------------------------------------------------------------- terminal
 
+LOOP = 7                   # seconds for one look-and-blink cycle
+GLANCE = (30, 36, 60, 66)  # % of the loop: leave centre, arrive right, leave right, centred again
+BLINK = (89, 90, 92, 93)   # % of the loop: lid half down, closed, half down again, open
 LOOK = 3  # pixels the iris glances to the right (toward the info)
+LID = 4   # grid row the upper lid reaches in the half-closed frame
 
 
 def runs(grid, cols, rows, colours, px):
@@ -73,8 +77,10 @@ def runs(grid, cols, rows, colours, px):
 
 
 def eye(th, look=None):
-    """Pixel-art eye (computer vision): a fixed outline and white, plus an iris that can glance right.
+    """Pixel-art eye (computer vision).
 
+    Three frames on one grid: open (with an iris that can glance right), half-closed and
+    closed. CSS swaps whole frames for the blink, so the eye never squashes or flips.
     Returns (svg, width, height, glance distance in px).
     """
     look = LOOK if look is None else look
@@ -105,8 +111,21 @@ def eye(th, look=None):
     iris[cy - 2, cx + 1] = "shine"
     if any((r, c + look) not in white for r, c in iris):
         raise ValueError(f"a {look}-pixel glance would push the iris out of the eye")
+    # half-closed: everything above the lid is gone, the lid edge is one outline row
+    opened = base | iris
+    half = {(r, c): kind for (r, c), kind in opened.items() if r > LID}
+    half |= {(r, c): "outline" for r, c in inside if r == LID}
+    # closed: a single lid line across the widest row, sagging one pixel in the middle
+    shut = {}
+    for r, c in inside:
+        if r == cy:
+            x = (c - cx) / 11.6
+            shut[cy + round(1 - x * x), c] = "outline"
     px = 8
-    art = runs(base, cols, rows, colours, px) + f'<g class="look">{runs(iris, cols, rows, colours, px)}</g>'
+    art = (f'<g class="open">{runs(base, cols, rows, colours, px)}'
+           f'<g class="look">{runs(iris, cols, rows, colours, px)}</g></g>'
+           f'<g class="half" opacity="0">{runs(half, cols, rows, colours, px)}</g>'
+           f'<g class="shut" opacity="0">{runs(shut, cols, rows, colours, px)}</g>')
     return art, cols * px, rows * px, look * px
 
 
@@ -229,15 +248,23 @@ def terminal(cfg, th, now):
             f'<line x1="2" y1="40" x2="{w - 2}" y2="40" stroke="{th["border"]}"/>']
     for i, svg in enumerate(lines):
         body.append(f'<g class="ln" style="animation-delay:{0.15 + i * 0.07:.2f}s">{svg}</g>')
-    # one 7s loop: look ahead, glance right toward the info (pixel by pixel), look back, blink
+    # one 7s loop: look ahead, glance right toward the info (pixel by pixel), look back, blink.
+    # The blink swaps whole pixel frames (open → half → closed → half → open, ~280ms):
+    # step-end holds each frame until the next keyframe, so the eye never squashes.
+    g0, g1, g2, g3 = GLANCE
+    b0, b1, b2, b3 = BLINK
     css = (".ln{animation:ln .45s ease-out both}@keyframes ln{from{opacity:0;transform:translateY(4px)}}"
            ".cur{animation:cur 1.1s steps(1) infinite}@keyframes cur{50%{opacity:0}}"
-           ".eye{transform-box:fill-box;transform-origin:center;animation:eye 7s ease-in-out infinite}"
-           "@keyframes eye{0%,88%,100%{transform:scaleY(1)}92%{transform:scaleY(.1)}}"
-           ".look{animation:look 7s infinite}"
-           f"@keyframes look{{0%,30%{{transform:translateX(0);animation-timing-function:steps({LOOK},end)}}"
-           f"36%,60%{{transform:translateX({shift}px);animation-timing-function:steps({LOOK},end)}}"
-           "66%,100%{transform:translateX(0)}}" + goal_css)
+           f".look{{animation:look {LOOP}s infinite}}"
+           f"@keyframes look{{0%,{g0}%{{transform:translateX(0);animation-timing-function:steps({LOOK},end)}}"
+           f"{g1}%,{g2}%{{transform:translateX({shift}px);animation-timing-function:steps({LOOK},end)}}"
+           f"{g3}%,100%{{transform:translateX(0)}}}}"
+           f".open{{animation:open {LOOP}s step-end infinite}}"
+           f"@keyframes open{{0%{{opacity:1}}{b0}%{{opacity:0}}{b3}%{{opacity:1}}}}"
+           f".half{{animation:half {LOOP}s step-end infinite}}"
+           f"@keyframes half{{0%{{opacity:0}}{b0}%{{opacity:1}}{b1}%{{opacity:0}}{b2}%{{opacity:1}}{b3}%{{opacity:0}}}}"
+           f".shut{{animation:shut {LOOP}s step-end infinite}}"
+           f"@keyframes shut{{0%{{opacity:0}}{b1}%{{opacity:1}}{b2}%{{opacity:0}}}}" + goal_css)
     label = (f'{cfg["user"]}: {cfg["role"]}, focused on {cfg["focus"]}. '
              + "; ".join(f"{k}: {v}" for k, v in cfg["fetch"]) + f'. {cfg["about"]} Now: ' + "; ".join(cfg["now"])
              + f'. Main goal: {cfg["goal"]} ({cfg["route"][0]} to {cfg["route"][1]}). Plans: ' + "; ".join(cfg["plan"]))
