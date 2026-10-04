@@ -44,15 +44,15 @@ def chips(cfg, live):
             out.append({"id": p["id"], "label": p["chip"], "lang": p["lang"], "kind": p["kind"],
                         "slot": p["slot"], "tier": p.get("tier", 2), "upstream": False,
                         "stamp": info.get("pushed_at"),
-                        "sub": f"{p['lang'].lower()} · {p['kind']}"})
+                        "sub": f"{p['lang']} · {p['kind'].capitalize()}"})
     for c in cfg["contributions"]:
         if c.get("slot"):
             pulls = (live["contributions"].get(c["id"]) or {}).get("pulls") or []
             stamp = max((p["merged_at"] for p in pulls if p.get("merged_at")), default=c.get("date"))
-            status = f"{len(pulls)} merged" if pulls else c.get("status", "merged")
+            status = f"{len(pulls)} Merged" if pulls else c.get("status", "merged").capitalize()
             out.append({"id": c["id"], "label": c["chip"], "lang": c["lang"], "kind": "upstream",
                         "slot": c["slot"], "tier": c.get("tier", 2), "upstream": True,
-                        "stamp": stamp, "sub": f"{c['lang'].lower()} · {status}"})
+                        "stamp": stamp, "sub": f"{c['lang']} · {status}"})
     return out
 
 
@@ -230,12 +230,12 @@ def cpu_svg(cfg, th):
         f'<rect x="{x0 + 14}" y="{y0 + 14}" width="{x1 - x0 - 28}" height="{y1 - y0 - 28}" rx="5" fill="url(#ihs)" '
         f'stroke="{th["chip_hi"]}" stroke-opacity=".8"/>',
         f'<path d="M{x0 + 6} {y0 + 6} h12 l-12 12 z" fill="{th["gold"]}" fill-opacity=".85"/>',
-        text(CX, 251, cfg["user"], 17, th["chip_text"], 700, "middle"),
+        text(CX, 251, cfg["name"].split()[0], 17, th["chip_text"], 700, "middle"),
         text(CX, 270, cfg["role"], 9.5, th["chip_muted"], 400, "middle"),
         text(CX, 284, cfg["focus"], 9.5, th["gold"], 600, "middle"),
         f'<line x1="{x0 + 34}" y1="298" x2="{x1 - 34}" y2="298" stroke="{th["chip_muted"]}" stroke-opacity=".35"/>',
-        text(CX, 314, "hbai academy", 8, th["chip_muted"], 400, "middle"),
-        text(CX, 325, "foundation stage", 8, th["chip_muted"], 400, "middle"),
+        text(CX, 314, "HBAI Academy", 8, th["chip_muted"], 400, "middle"),
+        text(CX, 325, "Foundation Stage", 8, th["chip_muted"], 400, "middle"),
         text(x0, y0 - PIN - 4, "U1", 8.5, th["silk_dim"]),
     ])
 
@@ -267,12 +267,12 @@ def silkscreen(cfg, th, now):
     local = now.astimezone(dt.timezone(dt.timedelta(hours=5)))
     s, d = th["silk"], th["silk_dim"]
     return "".join([
-        text(56, 50, cfg["login"], 15, s, 700, extra=' letter-spacing=".6"'),
+        text(56, 50, cfg["name"], 15, s, 700, extra=' letter-spacing=".6"'),
         text(56, 68, f'{cfg["role"]} · {cfg["focus"]}', 10.5, d),
-        text(944, 50, f"rev {local:%Y.%m.%d}", 10.5, s, 600, "end"),
-        text(944, 68, "redrawn daily from live github data", 9.5, d, 400, "end"),
+        text(944, 50, f"Rev {local:%Y.%m.%d}", 10.5, s, 600, "end"),
+        text(944, 68, "Redrawn daily from live GitHub data", 9.5, d, 400, "end"),
         text(56, 488, cfg["study"], 10.5, s, 600),
-        text(944, 488, "drawn with plain python", 9.5, d, 400, "end"),
+        text(944, 488, "Drawn with plain Python", 9.5, d, 400, "end"),
     ])
 
 
@@ -305,7 +305,7 @@ def board(cfg, live, th, now):
     body.append(silkscreen(cfg, th, now))
     css = (".breathe{animation:breathe 5s ease-in-out infinite alternate}@keyframes breathe{from{opacity:.45}}"
            ".blink{animation:blink 1.5s ease-in-out infinite alternate}@keyframes blink{from{opacity:.3}}")
-    label = (f"{cfg['user']}: {cfg['role']}, {cfg['focus']}. A circuit board drawn from my GitHub: "
+    label = (f"{cfg['name']}: {cfg['role']}, {cfg['focus']}. A circuit board drawn from my GitHub: "
              "the CPU in the middle is me, the chips around it are my projects and contributions.")
     return document(W, H, "".join(body), label, css, defs(th))
 
