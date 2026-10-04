@@ -183,6 +183,67 @@ class Words(unittest.TestCase):
         self.assertIsNone(board.recent(None, now))
 
 
+class Terminal(unittest.TestCase):
+    NS = "{http://www.w3.org/2000/svg}"
+
+    def svg(self, theme="dark"):
+        return cards.terminal(CFG, svg.THEMES[theme], board.when(NOW))
+
+    def strings(self, root):
+        for t in root.iter(f"{self.NS}text"):
+            if t.text and t.text.strip():
+                yield t.text
+            for span in t.iter(f"{self.NS}tspan"):
+                if span.text and span.text.strip():
+                    yield span.text
+
+    def test_words_start_with_a_capital_but_typed_things_stay_as_typed(self):
+        literals = {CFG["user"], CFG["host"], "@", f'{CFG["user"]}@{CFG["host"]}: ~',
+                    "fastfetch", "cat about.txt", "cat now.txt", "cat plan.txt"}
+        seen = list(self.strings(ET.fromstring(self.svg())))
+        self.assertIn(f'{CFG["user"]}@{CFG["host"]}: ~', seen)  # kept exactly as typed, on request
+        for s in seen:
+            first = s.lstrip()[:1]
+            if s in literals or not first.isalpha():
+                continue
+            self.assertTrue(first.isupper(), f"lowercase in the terminal: {s!r}")
+
+    def test_plan_shows_the_main_goal_and_every_plan(self):
+        out = self.svg("light")
+        for s in ["cat plan.txt", CFG["goal"], *CFG["route"], *CFG["plan"]]:
+            self.assertIn(svg.esc(s), out)
+
+    def test_goal_route_never_touches_the_goal_text(self):
+        _, _, route_left = cards.goal(CFG, 500, svg.THEMES["dark"], 880, 32, 14)
+        self.assertGreaterEqual(route_left - (32 + 20 + svg.width(CFG["goal"], 14)), 16)
+
+    def test_iris_glance_stays_inside_the_eye(self):
+        art, _, _, shift = cards.eye(svg.THEMES["dark"])
+        self.assertEqual(shift, cards.LOOK * 8)
+        self.assertIn('class="look"', art)
+        with self.assertRaises(ValueError):
+            cards.eye(svg.THEMES["dark"], look=6)
+
+    def test_eye_glances_one_way_only(self):
+        found = re.search(r"@keyframes look\{(.*?)\}\}", self.svg())
+        self.assertIsNotNone(found, "the eye has no glance animation")
+        moves = [float(v) for v in re.findall(r"translateX\((-?[\d.]+)px\)", found.group(1) if found else "")]
+        self.assertTrue(all(v >= 0 for v in moves), "the eye should only look right")
+        self.assertEqual(max(moves), cards.LOOK * 8)
+
+    def test_even_padding_and_rhythm(self):
+        root = ET.fromstring(self.svg())
+        h = float(root.get("height") or 0)
+        texts = [(float(t.get("y") or 0), t.text) for t in root.iter(f"{self.NS}text") if t.text]
+        prompts = sorted(y for y, s in texts if s == "❯")
+        for p in prompts[2:]:  # now, plan and the final prompt: one gap below the previous output
+            above = max(y for y, s in texts if y < p)
+            self.assertAlmostEqual(p - above, 34, delta=0.5)
+        top_pad = (prompts[0] - 10) - 40          # first prompt's cap top to the title-bar line
+        bottom_pad = (h - 1.5) - (prompts[-1] + 4)  # cursor bottom to the card edge
+        self.assertLessEqual(abs(top_pad - bottom_pad), 4, f"{top_pad:.1f} vs {bottom_pad:.1f}")
+
+
 class Safety(unittest.TestCase):
     def test_placeholder_text_is_rejected(self):
         bad = svg.document(10, 10, svg.text(1, 1, "None", 5, "#000"), "x")

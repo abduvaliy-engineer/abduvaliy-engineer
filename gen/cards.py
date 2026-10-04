@@ -51,34 +51,12 @@ def ago(stamp, now):
 
 # ---------------------------------------------------------------- terminal
 
-def eye(th):
-    """Pixel-art eye (computer vision) as merged rect runs."""
-    cols, rows, cx, cy = 23, 13, 11, 6
-    inside = set()
-    for r in range(rows):
-        for c in range(cols):
-            x, y = (c - cx) / 11.6, (r - cy) / 6.6
-            if abs(x) < 1 and abs(y) <= (1 - x * x) ** 0.85:
-                inside.add((r, c))
-    dark = th["name"] == "dark"
-    colours = {"outline": th["blue"], "sclera": "#1a2330" if dark else "#e7edf5",
-               "iris_in": "#3fc1cf" if dark else "#1b7c83", "iris": "#2f81f7" if dark else "#0969da",
-               "pupil": "#04070b" if dark else "#0d1117", "shine": "#ffffff"}
-    grid = {}
-    for r, c in inside:
-        d = ((c - cx) ** 2 + (r - cy) ** 2) ** 0.5
-        if any((r + a, c + b) not in inside for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1))):
-            grid[r, c] = "outline"
-        elif d <= 1.6:
-            grid[r, c] = "pupil"
-        elif d <= 2.9:
-            grid[r, c] = "iris_in"
-        elif d <= 4.3:
-            grid[r, c] = "iris"
-        else:
-            grid[r, c] = "sclera"
-    grid[cy - 2, cx + 1] = "shine"
-    px, out = 8, []
+LOOK = 3  # pixels the iris glances to the right (toward the info)
+
+
+def runs(grid, cols, rows, colours, px):
+    """Merge same-coloured horizontal pixel runs into rects."""
+    out = []
     for r in range(rows):
         c = 0
         while c < cols:
@@ -91,7 +69,81 @@ def eye(th):
                 run += 1
             out.append(f'<rect x="{c * px}" y="{r * px}" width="{(run - c + 1) * px}" height="{px}" fill="{colours[kind]}"/>')
             c = run + 1
-    return "".join(out), cols * px, rows * px
+    return "".join(out)
+
+
+def eye(th, look=None):
+    """Pixel-art eye (computer vision): a fixed outline and white, plus an iris that can glance right.
+
+    Returns (svg, width, height, glance distance in px).
+    """
+    look = LOOK if look is None else look
+    cols, rows, cx, cy = 23, 13, 11, 6
+    inside = set()
+    for r in range(rows):
+        for c in range(cols):
+            x, y = (c - cx) / 11.6, (r - cy) / 6.6
+            if abs(x) < 1 and abs(y) <= (1 - x * x) ** 0.85:
+                inside.add((r, c))
+    edge = {(r, c) for r, c in inside
+            if any((r + a, c + b) not in inside for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1)))}
+    white = inside - edge
+    dark = th["name"] == "dark"
+    colours = {"outline": th["blue"], "sclera": "#1a2330" if dark else "#e7edf5",
+               "iris_in": "#3fc1cf" if dark else "#1b7c83", "iris": "#2f81f7" if dark else "#0969da",
+               "pupil": "#04070b" if dark else "#0d1117", "shine": "#ffffff"}
+    base = {cell: "outline" for cell in edge} | {cell: "sclera" for cell in white}
+    iris = {}
+    for r, c in white:
+        d = ((c - cx) ** 2 + (r - cy) ** 2) ** 0.5
+        if d <= 1.6:
+            iris[r, c] = "pupil"
+        elif d <= 2.9:
+            iris[r, c] = "iris_in"
+        elif d <= 4.3:
+            iris[r, c] = "iris"
+    iris[cy - 2, cx + 1] = "shine"
+    if any((r, c + look) not in white for r, c in iris):
+        raise ValueError(f"a {look}-pixel glance would push the iris out of the eye")
+    px = 8
+    art = runs(base, cols, rows, colours, px) + f'<g class="look">{runs(iris, cols, rows, colours, px)}</g>'
+    return art, cols * px, rows * px, look * px
+
+
+def checkbox(x, y, th):
+    """An empty to-do box sitting on the text baseline."""
+    return (f'<rect x="{x + 1}" y="{y - 11}" width="11" height="11" rx="2.5" fill="none" '
+            f'stroke="{th["faint"]}" stroke-width="1.5"/>')
+
+
+def goal(cfg, y, th, w, x0, size):
+    """The main plan line: highlighted, with a small route from where I am to the goal.
+
+    Returns (svg, css, route start x) so tests can check nothing collides.
+    """
+    start, end = cfg["route"]
+    accent, right, mid = th["accent"], w - x0, y - 5
+    ring = right - width(end, 11.5) - 12
+    dot = ring - 110
+    start_x = dot - 10
+    room = start_x - width(start, 11.5) - 24 - (x0 + 20)
+    dist = ring - 6 - (dot + 5)
+    svg = (f'<rect x="{x0 - 10}" y="{y - 16}" width="{w - 2 * x0 + 20}" height="22" rx="4" '
+           f'fill="{accent}" fill-opacity=".10"/>'
+           f'<rect x="{x0 - 10}" y="{y - 16}" width="3" height="22" rx="1.5" fill="{accent}"/>'
+           + text(x0, y, "★", size, accent, 700)
+           + text(x0 + 20, y, fit(cfg["goal"], size, room), size, th["text"], 700)
+           + text(start_x, y - 1, start, 11.5, th["muted"], 400, "end")
+           + f'<circle cx="{dot:.1f}" cy="{mid}" r="4" fill="{th["green"]}"/>'
+           + f'<path d="M{dot + 5:.1f} {mid} H{ring - 6:.1f}" stroke="{th["faint"]}" stroke-width="2" '
+             f'stroke-dasharray="3 4" fill="none"/>'
+           + f'<circle class="go" cx="{dot + 5:.1f}" cy="{mid}" r="2.6" fill="{accent}" opacity="0"/>'
+           + f'<circle cx="{ring:.1f}" cy="{mid}" r="4.5" fill="none" stroke="{accent}" stroke-width="2"/>'
+           + text(right, y - 1, end, 11.5, accent, 700, "end"))
+    css = (".go{animation:go 2.8s ease-in-out infinite}"
+           f"@keyframes go{{0%{{transform:translateX(0);opacity:0}}15%,85%{{opacity:1}}"
+           f"100%{{transform:translateX({dist:.1f}px);opacity:0}}}}")
+    return svg, css, start_x - width(start, 11.5)
 
 
 def terminal(cfg, th, now):
@@ -99,10 +151,12 @@ def terminal(cfg, th, now):
     dark = th["name"] == "dark"
     bg = "#0a0e14" if dark else "#fbfcfe"
     size, lh = 14, 22
+    gap = lh + 12  # from the last line of one output to the next prompt
     x0 = 32
-    lines = []  # (svg, y) in reveal order
+    lines = []  # in reveal order
 
     def prompt(y, command):
+        # commands and user@host stay lowercase: that is what you really type in a terminal
         return (text(x0, y, "❯", size, th["green"], 700)
                 + text(x0 + 20, y, command, size, th["text"]))
 
@@ -126,7 +180,7 @@ def terminal(cfg, th, now):
                          for i, c in enumerate(palette)))
     block_bottom = pal_y + 12
 
-    art, aw, ah = eye(th)
+    art, aw, ah, shift = eye(th)
     ex = 40 + (200 - aw) / 2
     ey = (y0 - 14 + block_bottom) / 2 - ah / 2 + 8
     g = th["green"]
@@ -134,7 +188,7 @@ def terminal(cfg, th, now):
     bx0, by0, bx1, by1 = ex - m, ey - m, ex + aw + m, ey + ah + m
     corners = (f"M{bx0} {by0 + 16}V{by0}H{bx0 + 16} M{bx1 - 16} {by0}H{bx1}V{by0 + 16} "
                f"M{bx1} {by1 - 16}V{by1}H{bx1 - 16} M{bx0 + 16} {by1}H{bx0}V{by1 - 16}")
-    tag = "eye 0.98"
+    tag = "Eye 0.98"
     logo = (f'<g transform="translate({ex:.1f} {ey:.1f})"><g class="eye">{art}</g></g>'
             f'<path d="{corners}" fill="none" stroke="{g}" stroke-width="2.5"/>'
             f'<rect x="{bx0}" y="{by0 - 18}" width="{width(tag, 10.5) + 12:.1f}" height="16" rx="2" fill="{g}"/>'
@@ -146,13 +200,22 @@ def terminal(cfg, th, now):
     for line in wrap(cfg["about"], size, w - 2 * x0, 2):
         y += lh
         lines.append(text(x0, y, line, size, th["text"]))
-    y += lh + 12
+    y += gap
     lines.append(prompt(y, "cat now.txt"))
     for item in cfg["now"]:
         y += lh
         lines.append(text(x0, y, "→", size, th["accent"], 700)
                      + text(x0 + 20, y, fit(item, size, w - x0 - 20 - 28), size, th["text"]))
-    y += lh + 12
+    y += gap
+    lines.append(prompt(y, "cat plan.txt"))
+    y += lh + 3  # a little air around the highlighted main goal
+    goal_svg, goal_css, _ = goal(cfg, y, th, w, x0, size)
+    lines.append(goal_svg)
+    y += 3
+    for item in cfg["plan"]:
+        y += lh
+        lines.append(checkbox(x0, y, th) + text(x0 + 20, y, fit(item, size, w - x0 - 20 - 28), size, th["text"]))
+    y += gap
     lines.append(text(x0, y, "❯", size, th["green"], 700)
                  + f'<rect class="cur" x="{x0 + 20}" y="{y - 13}" width="9" height="17" fill="{th["text"]}"/>')
     h = y + 26
@@ -162,16 +225,22 @@ def terminal(cfg, th, now):
             f'<stop offset="1" stop-color="{th["blue"]}"/></linearGradient></defs>',
             f'<rect x="1.5" y="1.5" width="{w - 3}" height="{h - 3}" rx="12" fill="{bg}" stroke="url(#hb)" stroke-width="2"/>',
             text(x0, 27, f'{cfg["user"]}@{cfg["host"]}: ~', 11.5, th["muted"]),
-            text(w - x0, 27, f"{stamp:%a %d %b}".lower(), 11.5, th["muted"], 400, "end"),
+            text(w - x0, 27, f"{stamp:%a %d %b}", 11.5, th["muted"], 400, "end"),
             f'<line x1="2" y1="40" x2="{w - 2}" y2="40" stroke="{th["border"]}"/>']
     for i, svg in enumerate(lines):
         body.append(f'<g class="ln" style="animation-delay:{0.15 + i * 0.07:.2f}s">{svg}</g>')
+    # one 7s loop: look ahead, glance right toward the info (pixel by pixel), look back, blink
     css = (".ln{animation:ln .45s ease-out both}@keyframes ln{from{opacity:0;transform:translateY(4px)}}"
            ".cur{animation:cur 1.1s steps(1) infinite}@keyframes cur{50%{opacity:0}}"
-           ".eye{transform-box:fill-box;transform-origin:center;animation:eye 6s ease-in-out infinite}"
-           "@keyframes eye{0%,91%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}")
+           ".eye{transform-box:fill-box;transform-origin:center;animation:eye 7s ease-in-out infinite}"
+           "@keyframes eye{0%,88%,100%{transform:scaleY(1)}92%{transform:scaleY(.1)}}"
+           ".look{animation:look 7s infinite}"
+           f"@keyframes look{{0%,30%{{transform:translateX(0);animation-timing-function:steps({LOOK},end)}}"
+           f"36%,60%{{transform:translateX({shift}px);animation-timing-function:steps({LOOK},end)}}"
+           "66%,100%{transform:translateX(0)}}" + goal_css)
     label = (f'{cfg["user"]}: {cfg["role"]}, focused on {cfg["focus"]}. '
-             + "; ".join(f"{k}: {v}" for k, v in cfg["fetch"]) + f'. {cfg["about"]} Now: ' + "; ".join(cfg["now"]))
+             + "; ".join(f"{k}: {v}" for k, v in cfg["fetch"]) + f'. {cfg["about"]} Now: ' + "; ".join(cfg["now"])
+             + f'. Main goal: {cfg["goal"]} ({cfg["route"][0]} to {cfg["route"][1]}). Plans: ' + "; ".join(cfg["plan"]))
     return document(w, h, "".join(body), label, css)
 
 

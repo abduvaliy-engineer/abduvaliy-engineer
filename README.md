@@ -13,7 +13,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/abduvaliy-engineer/abduvaliy-engineer/output/terminal-dark.svg">
-  <img alt="fastfetch: ai software engineer. vision: opencv, yolo, face recognition, ocr, pytorch. ai: llms, rag, ollama, mcp. code: python, typescript, javascript, sql, c (learning). backend: fastapi, postgresql, redis, docker. frontend: react. os: omarchy linux. study: humblebee ai academy, foundation stage. i build ai apps that can see: they read photos, watch cameras and recognize faces." src="https://raw.githubusercontent.com/abduvaliy-engineer/abduvaliy-engineer/output/terminal-light.svg" width="100%">
+  <img alt="fastfetch: AI Software Engineer. Vision: OpenCV, YOLO, Face Recognition, OCR, PyTorch. AI: LLMs, RAG, Ollama, MCP. Code: Python, TypeScript, JavaScript, SQL, C (learning). Backend: FastAPI, PostgreSQL, Redis, Docker. Frontend: React. OS: Omarchy Linux. Study: Humblebee AI Academy, Foundation Stage. I build AI apps that can see: they read photos, watch cameras and recognize faces. Main goal: reach Growth 3 at Humblebee AI Academy. Plans: study abroad, learn Japanese, travel the world, buy a gaming PC." src="https://raw.githubusercontent.com/abduvaliy-engineer/abduvaliy-engineer/output/terminal-light.svg" width="100%">
 </picture>
 
 <picture>

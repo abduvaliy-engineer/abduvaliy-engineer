@@ -8,43 +8,54 @@
   "study": "Humblebee AI Academy · Foundation Stage",
   "fetch": [
     [
-      "role",
-      "ai software engineer"
+      "Role",
+      "AI Software Engineer"
     ],
     [
-      "vision",
-      "opencv · yolo · face recognition · ocr · pytorch"
+      "Vision",
+      "OpenCV · YOLO · Face Recognition · OCR · PyTorch"
     ],
     [
-      "ai",
-      "llms · rag · ollama · mcp"
+      "AI",
+      "LLMs · RAG · Ollama · MCP"
     ],
     [
-      "code",
-      "python · typescript · javascript · sql · c (learning)"
+      "Code",
+      "Python · TypeScript · JavaScript · SQL · C (learning)"
     ],
     [
-      "backend",
-      "fastapi · postgresql · redis · docker"
+      "Backend",
+      "FastAPI · PostgreSQL · Redis · Docker"
     ],
     [
-      "frontend",
-      "react"
+      "Frontend",
+      "React"
     ],
     [
-      "os",
-      "omarchy linux (arch) · hyprland"
+      "OS",
+      "Omarchy Linux (Arch) · Hyprland"
     ],
     [
-      "study",
-      "humblebee ai academy · foundation stage"
+      "Study",
+      "Humblebee AI Academy · Foundation Stage"
     ]
   ],
-  "about": "i build ai apps that can see: they read photos, watch cameras and recognize faces.",
+  "about": "I build AI apps that can see: they read photos, watch cameras and recognize faces.",
   "now": [
-    "an ai legal assistant that quotes the exact law, and says \"not sure\" when it isn't",
-    "my webcam fix got into the linux kernel; testing it on more distros",
-    "learning c, after writing my first kernel patch"
+    "An AI legal assistant that quotes the exact law, and says \"not sure\" when it isn't",
+    "My webcam fix got into the Linux kernel; testing it on more distros",
+    "Learning C, after writing my first kernel patch"
+  ],
+  "goal": "Reach Growth 3 at Humblebee AI Academy",
+  "route": [
+    "Foundation",
+    "Growth 3"
+  ],
+  "plan": [
+    "Study abroad",
+    "Learn Japanese",
+    "Travel the world",
+    "Buy a gaming PC"
   ],
   "projects": [
     {
