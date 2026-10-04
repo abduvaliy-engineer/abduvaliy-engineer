@@ -1,79 +1,66 @@
 # Abduvaliy Abdulazizov
 
-### Software developer · AI-enabled backends & automation
+### Backend / AI Engineer · APIs, automation & infrastructure
 
-I build APIs, AI integrations, and operational tools—from OCR services and messaging bots to dashboards backed by real data. My work spans implementation, regression testing, deployment, and Linux troubleshooting.
+I build backend services, AI integrations, automation, and infrastructure—from OCR pipelines and messaging systems to production APIs and data-backed dashboards.
 
-`Python / FastAPI` · `APIs & integrations` · `Docker / Linux`
+`Python` · `FastAPI` · `Docker` · `PostgreSQL` · `Linux`
 
 ## What I build
 
-- **AI-enabled services:** OCR pipelines, LLM integrations, and independently deployed MCP services.
-- **Workflow software:** Telegram/Discord automation and operational dashboards with authentication and persistent data.
-- **Deployment tooling:** containerized services, CI checks, migration safeguards, and production debugging.
+- **Backend & AI services:** APIs, OCR pipelines, LLM integrations, and MCP services.
+- **Automation & interfaces:** Telegram/Discord workflows and data-backed operational dashboards.
+- **Infrastructure:** independent deployments, CI checks, migration safeguards, and production debugging.
 
 ## Selected work
 
-**OCR service & Telegram integration**\
-Built a FastAPI service with job, status, result, and retry endpoints using Ollama-backed OCR. Connected incoming Telegram images to stored transcripts and summaries; deployed the service independently and fixed repeating output without dropping genuine text.\
-`Python` `FastAPI` `Ollama` `Docker`
+**OCR + Telegram pipeline**\
+Built and independently deployed a FastAPI/Ollama service connecting image ingestion, stored transcripts, and summaries; fixed repeating OCR output without losing genuine text.
 
-**Computer-vision operations dashboard — team contributions**\
-Replaced mock camera configuration with database-backed APIs; implemented history views and detection workflows. Contributed authentication, tenant-isolation, rate-limit, and PostgreSQL listener fixes across the dashboard and backend.\
-`React / TypeScript` `Express` `Sequelize` `PostgreSQL`
+**Computer-vision operations platform — team contributions**\
+Connected React/TypeScript dashboards to live APIs; contributed camera management, detection/history workflows, authentication, tenant isolation, and PostgreSQL reliability fixes.
 
-**AI chat → PDF/DOCX export**\
-Shipped document export from Telegram answers in a CRM-integrated assistant. Fixed table formatting, duplicate exports, split-message ordering, and a slow-render lock bottleneck; tested the complete flow and deployed it to production.\
-`Ruby / Chatwoot` `Telegram Bot API` `Regression tests`
+**Independent MCP infrastructure**\
+Separated authentication, monitoring, and deployment from a legacy runtime; contributed Docker-stack migrations with backups, health checks, and data-integrity verification.
 
 <details>
-<summary><strong>More work: service boundaries, personal automation & Linux</strong></summary>
-
-<br>
-
-**Independent MCP service & deployment operations**\
-Separated MCP authentication, monitoring, and deployment from a legacy runtime. Contributed Docker-stack and observability migrations with backups, health checks, and data-integrity verification.\
-`MCP` `Docker Compose` `Linux`
+<summary>More work: personal automation & AI document export</summary>
 
 **Solo-Tracker — personal project**\
-Released and deployed a Discord productivity-tracker MVP with daily quest parsing, XP/streaks, weekly reports, and a dashboard. Added GitHub Actions CI and AI-generated quests.\
-`Discord` `Fastify` `Vite` `Docker`
+Deployed a Discord productivity-tracker MVP with quests, XP/streaks, and weekly reports; added AI-generated quests and GitHub Actions CI. `Fastify` · `Vite` · `Docker`
 
-**[Acer Nitro Linux camera fix](https://github.com/abduvaliy-engineer/acer-nitro-anv16s-camera-fix) — personal / open source**\
-Traced a missing webcam to ACPI GPIO interrupt handling that cut its power. Verified a boot workaround, published reversible installer/check tooling, and submitted a Linux DMI-quirk patch upstream.
+**AI chat → PDF/DOCX export**\
+Shipped Telegram answer exports with table formatting, duplicate prevention, and ordered split messages; fixed a slow-render lock bottleneck. `Ruby` · `Chatwoot` · `Telegram Bot API`
 
 </details>
 
 ## Stack
 
-| Area | Repeatedly used in project work |
+| Area | Technologies |
 | :--- | :--- |
-| Languages | Python · JavaScript / TypeScript · SQL |
-| Backend & interfaces | FastAPI · Express · React · REST APIs |
-| AI integrations | LLM APIs · Ollama-backed OCR · MCP |
+| Languages | Python · JavaScript · TypeScript · SQL |
+| Backend & UI | FastAPI · Express · React |
+| AI & integrations | LLM APIs · Ollama · MCP · Telegram / Discord |
 | Data | PostgreSQL · MySQL · Redis |
-| Delivery | Linux · Docker / Compose · Git · GitHub Actions |
+| Infrastructure | Linux · Docker / Compose · GitHub Actions · Nginx |
+| ML / Data | pandas · NumPy · scikit-learn · model evaluation |
 
-**Additional working experience:** Ruby/Chatwoot, Nginx, SSH, Tailscale, and Discord integrations.\
-**ML/data study and applied exercises:** pandas, NumPy, scikit-learn, model comparison and evaluation—not a claim of production ML-training expertise.
+## Open source / Linux
 
-## Current focus · October 2026
+**[Acer Nitro Linux camera fix](https://github.com/abduvaliy-engineer/acer-nitro-anv16s-camera-fix)**\
+Traced a missing webcam to ACPI GPIO interrupt handling that cut its power. Verified a workaround, published reversible installer/check tooling, and submitted a Linux DMI-quirk patch upstream.
 
-- Completing live verification of Redis-backed SMS OTP and multilingual phone-verification flows; local checks pass, review and live SMS testing remain pending.
-- Planning AI-answer evaluation, exact-source retrieval, and safe abstention; following up on the submitted Linux camera patch.
+## Current focus
 
-## Engineering areas
-
-**Core:** API integration · backend automation · deployment/debugging\
-**Also:** data-backed interfaces · service boundaries · authentication · regression testing
-
-My work progressed from Python/CV prototypes and a deployed learning-challenge app to team dashboard contributions, independent OCR/MCP services, and production migrations.
+- Reliable AI-backed APIs, messaging integrations, and independently deployed services.
+- AI-answer evaluation, source-grounded retrieval, and safe abstention.
+- Linux hardware debugging and upstream contributions.
 
 ## GitHub activity
 
-![GitHub contribution snapshot for abduvaliy-engineer, January 1–October 4, 2026](assets/github-activity.svg)
+![GitHub contribution activity for abduvaliy-engineer](assets/github-activity.svg)
 
-<sub>GitHub API snapshot · 2026-01-01–2026-10-04 · contributions, not a commit count · no third-party stats widget.</sub>
+<sub>Refreshed daily by GitHub Actions · GitHub-reported contributions, not a commit count.</sub>
 
 ## Links
 
