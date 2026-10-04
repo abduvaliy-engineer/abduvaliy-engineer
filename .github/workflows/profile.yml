@@ -1,0 +1,67 @@
+name: Redraw profile
+
+on:
+  schedule:
+    - cron: '23 1 * * *'   # 06:23 in Tashkent, every day
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'gen/**'
+      - 'tests/**'
+      - 'README.md'
+      - '.github/workflows/profile.yml'
+  pull_request:
+    paths:
+      - 'gen/**'
+      - 'tests/**'
+      - 'README.md'
+      - '.github/workflows/profile.yml'
+
+concurrency:
+  group: profile-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Tests (offline)
+        run: python3 -m unittest discover -s tests -v
+      - name: Draw from live GitHub data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 gen/build.py --out "$RUNNER_TEMP/out"
+
+  publish:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Draw from live GitHub data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 gen/build.py --out "$RUNNER_TEMP/out"
+      - name: Publish to the output branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch --orphan output
+          cp "$RUNNER_TEMP"/out/* .
+          git add -- '*.svg' manifest.json
+          if git fetch --quiet origin output && git diff --quiet --cached FETCH_HEAD; then
+            echo "drawings unchanged"
+            exit 0
+          fi
+          git commit --quiet -m "redraw $(date -u +%F)"
+          git push --force origin HEAD:output
