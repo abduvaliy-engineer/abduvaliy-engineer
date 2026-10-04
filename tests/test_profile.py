@@ -259,6 +259,20 @@ class Terminal(unittest.TestCase):
         self.assertIn('class="half" opacity="0"', art)
         self.assertIn('class="shut" opacity="0"', art)
 
+    def test_detection_box_follows_the_blink(self):
+        for theme in ("dark", "light"):
+            th = svg.THEMES[theme]
+            boxes = {}
+            for g in ET.fromstring(self.svg(theme)).iter(f"{self.NS}g"):
+                label, path = g.find(f"{self.NS}text"), g.find(f"{self.NS}path")
+                if g.get("class") in ("open", "half", "shut") and label is not None and path is not None:
+                    boxes[g.get("class")] = (float((label.text or "0").split()[-1]), path.get("stroke"), g.get("opacity"))
+            self.assertEqual(set(boxes), {"open", "half", "shut"})
+            conf = [boxes[k][0] for k in ("open", "half", "shut")]
+            self.assertTrue(conf[0] > conf[1] > 0.25 > conf[2], f"confidence must drop as the eye closes: {conf}")
+            self.assertEqual([boxes[k][1] for k in ("open", "half", "shut")], [th["green"], th["accent"], th["red"]])
+            self.assertEqual([boxes[k][2] for k in ("open", "half", "shut")], [None, "0", "0"])
+
     def test_closed_eye_is_a_thin_lid_line(self):
         art, _, _, _ = cards.eye(svg.THEMES["dark"])
         shut = re.search(r'<g class="shut"[^>]*>(.*?)</g>', art)
