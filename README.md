@@ -58,6 +58,8 @@ Traced a missing webcam to ACPI GPIO interrupt handling that cut its power. Veri
 
 ## GitHub activity
 
+[![GitHub Streak](https://github-readme-streak-stats.herokuapp.com?user=abduvaliy-engineer&theme=dark&hide_border=true&card_width=500&card_height=200)](https://git.io/streak-stats)
+
 ![GitHub contribution activity for abduvaliy-engineer](assets/github-activity.svg)
 
 <sub>Refreshed daily by GitHub Actions · GitHub-reported contributions, not a commit count.</sub>
