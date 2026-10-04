@@ -310,22 +310,28 @@ def board(cfg, live, th, now):
     return document(W, H, "".join(body), label, css, defs(th))
 
 
+KEY = {"w": 1000, "h": 174, "box": (8, 162), "rows": (39, 87), "rule": 118, "foot": 138}
+
+
 def key(th):
-    """The legend under the board."""
-    items = [("the cpu", "me"), ("a chip", "something i built or worked on"),
-             ("the stripe", "its main language"), ("dashed outline", "private or team work"),
-             ("gold pins + traces", "my code in someone else's repo"), ("green led", "worked on it this week"),
-             ("gpio 11", "the pin behind my kernel fix"), ("the crystal", "redraws this board every day")]
-    w, h = 1000, 150
-    parts = [f'<rect x="8" y="6" width="{w - 16}" height="{h - 12}" rx="14" fill="{th["card"]}" stroke="{th["border"]}"/>']
+    """The legend under the board, with even padding and the rule clear of both rows."""
+    items = [("The CPU", "Me"), ("A Chip", "Something I built or worked on"),
+             ("The Stripe", "Its main language"), ("Dashed Outline", "Private or team work"),
+             ("Gold Pins + Traces", "My code in someone else's repo"), ("Green LED", "Worked on it this week"),
+             ("GPIO 11", "The pin behind my kernel fix"), ("The Crystal", "Redraws this board every day")]
+    w, h = KEY["w"], KEY["h"]
+    top, bottom = KEY["box"]
+    parts = [f'<rect x="8" y="{top}" width="{w - 16}" height="{bottom - top}" rx="14" '
+             f'fill="{th["card"]}" stroke="{th["border"]}"/>']
     for i, (title, desc) in enumerate(items):
         x = 34 + (i % 4) * 240
-        y = 50 + (i // 4) * 46
-        parts.append(glyph(i, x, y - 10, th))
-        parts.append(text(x + 40, y - 3, title, 12, th["text"], 700))
-        parts.append(text(x + 40, y + 13, desc, 10, th["muted"]))
-    parts.append(f'<line x1="34" y1="{h - 36}" x2="{w - 34}" y2="{h - 36}" stroke="{th["border"]}"/>')
-    parts.append(text(w / 2, h - 18, "the moving dots are just data flowing · redrawn every day by a github action",
+        base = KEY["rows"][i // 4]  # title baseline; the description sits 16px lower
+        parts.append(glyph(i, x, base + 5, th))  # +5 centres the glyph on both lines
+        parts.append(text(x + 40, base, title, 12, th["text"], 700))
+        parts.append(text(x + 40, base + 16, desc, 10, th["muted"]))
+    rule = KEY["rule"]
+    parts.append(f'<line x1="34" y1="{rule}" x2="{w - 34}" y2="{rule}" stroke="{th["border"]}"/>')
+    parts.append(text(w / 2, KEY["foot"], "The moving dots are just data flowing · Redrawn every day by a GitHub Action",
                       10, th["faint"], 400, "middle"))
     return document(w, h, "".join(parts), "Key: the CPU is me, chips are projects, gold means merged upstream.",
                     defs=defs(th))
@@ -341,11 +347,13 @@ def glyph(i, x, y, th):
                 f'<rect x="{cx + 9}" y="{y - 6}" width="3" height="12" fill="url(#pv)"/>'
                 f'<circle cx="{cx}" cy="{y}" r="3" fill="{th["gold"]}"/>')
     if i in (1, 3):
-        dash = (f' stroke="{th["silk"] if th["name"] == "dark" else th["muted"]}" stroke-dasharray="3 2"'
-                if i == 3 else f' stroke="{th["chip_hi"]}"')
-        return (f'<rect x="{cx - 13}" y="{y - 10}" width="26" height="3" fill="url(#ph)"/>'
+        body = (f'<rect x="{cx - 13}" y="{y - 10}" width="26" height="3" fill="url(#ph)"/>'
                 f'<rect x="{cx - 13}" y="{y + 7}" width="26" height="3" fill="url(#ph)"/>'
-                f'<rect x="{cx - 14}" y="{y - 7}" width="28" height="14" rx="2" fill="{chip}"{dash}/>')
+                f'<rect x="{cx - 14}" y="{y - 7}" width="28" height="14" rx="2" fill="{chip}" stroke="{th["chip_hi"]}"/>')
+        if i == 3:  # the same dashed courtyard the board draws around private/team chips
+            body = (f'<rect x="{cx - 18}" y="{y - 14}" width="36" height="28" rx="4" fill="none" '
+                    f'stroke="{th["silk"]}" stroke-opacity=".7" stroke-width="1.2" stroke-dasharray="4 3"/>') + body
+        return body
     if i == 2:
         return "".join(f'<rect x="{cx - 13}" y="{y - 7 + j * 6}" width="26" height="3" rx="1.5" fill="{lang_color(l, th)}"/>'
                        for j, l in enumerate(["Python", "TypeScript", "Shell"]))

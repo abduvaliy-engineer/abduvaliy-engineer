@@ -66,10 +66,28 @@ class OfflineBuild(unittest.TestCase):
             self.assertIn("ai software engineer", self.files[name].lower())
 
     def test_board_words_start_with_a_capital(self):
-        root = ET.fromstring(self.files["board-dark.svg"])
-        for t in root.iter("{http://www.w3.org/2000/svg}text"):
-            first = (t.text or "").lstrip()[:1]
-            self.assertFalse(first.isalpha() and not first.isupper(), f"lowercase on the board: {t.text!r}")
+        for name in ("board-dark.svg", "key-dark.svg"):
+            root = ET.fromstring(self.files[name])
+            for t in root.iter("{http://www.w3.org/2000/svg}text"):
+                first = (t.text or "").lstrip()[:1]
+                self.assertFalse(first.isalpha() and not first.isupper(), f"lowercase in {name}: {t.text!r}")
+
+    def test_key_has_even_padding_and_a_clear_rule(self):
+        root = ET.fromstring(self.files["key-dark.svg"])
+        ns = "{http://www.w3.org/2000/svg}"
+        box = root.findall(f"{ns}rect")[0]  # top-level only: <defs> holds pin rects too
+        top = float(box.get("y") or 0)
+        bottom = top + float(box.get("height") or 0)
+        rule = float(root.findall(f"{ns}line")[0].get("y1") or 0)
+        texts = [(float(t.get("y") or 0), float(t.get("font-size") or 0)) for t in root.iter(f"{ns}text")
+                 if t.text and t.get("font-size") in ("12", "10")]
+        above = [y for y, _ in texts if y < rule]
+        below = [y for y, _ in texts if y > rule]
+        self.assertGreaterEqual(rule - (max(above) + 3), 10, "row text crowds the rule")
+        self.assertGreaterEqual(min(below) - 7.5 - rule, 10, "footer crowds the rule")
+        top_pad = min(y - 0.72 * size for y, size in texts) - top
+        bottom_pad = bottom - (max(below) + 3)
+        self.assertLessEqual(abs(top_pad - bottom_pad), 4, f"uneven padding {top_pad:.1f} vs {bottom_pad:.1f}")
 
     def test_board_chips_use_real_names(self):
         board_svg = self.files["board-light.svg"]
