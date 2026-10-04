@@ -2,9 +2,10 @@
   "login": "abduvaliy-engineer",
   "user": "abduvaliy",
   "host": "omarchy",
-  "role": "ai software engineer",
-  "focus": "computer vision",
-  "study": "humblebee ai academy · foundation stage",
+  "name": "Abduvaliy Abdulazizov",
+  "role": "AI Software Engineer",
+  "focus": "Computer Vision",
+  "study": "Humblebee AI Academy · Foundation Stage",
   "fetch": [
     [
       "role",
@@ -49,7 +50,7 @@
     {
       "id": "cv",
       "name": "camera ai dashboard",
-      "chip": "camera ai dashboard",
+      "chip": "LumioHub",
       "kind": "team",
       "lang": "TypeScript",
       "slot": "L2",
@@ -59,7 +60,7 @@
     {
       "id": "ocr",
       "name": "photo → text bot",
-      "chip": "photo → text",
+      "chip": "OCR (Photo to Text)",
       "kind": "private",
       "lang": "Python",
       "slot": "L1",
@@ -69,7 +70,7 @@
     {
       "id": "camfix",
       "name": "nitro camera fix",
-      "chip": "nitro camera fix",
+      "chip": "Acer Nitro Camera Fix",
       "kind": "public",
       "lang": "Shell",
       "slot": "T",
@@ -87,7 +88,7 @@
     {
       "id": "live",
       "name": "live-view",
-      "chip": "live-view",
+      "chip": "Live View",
       "kind": "public",
       "lang": "Python",
       "slot": "B",
@@ -104,7 +105,7 @@
     {
       "id": "mcp",
       "name": "telegram ai bridge",
-      "chip": "telegram ai bridge",
+      "chip": "MCP for Telegram",
       "kind": "private",
       "lang": "Python",
       "slot": "L3",
@@ -153,7 +154,7 @@
     {
       "id": "kernel",
       "label": "linux kernel · gpio fixes tree",
-      "chip": "linux kernel",
+      "chip": "Linux Kernel",
       "slot": "R1",
       "lang": "C",
       "status": "accepted",
@@ -204,7 +205,7 @@
       "id": "widgets",
       "repo": "cyelis1224/omarchy-desktop-widgets",
       "pr": 1,
-      "chip": "omarchy widgets",
+      "chip": "Omarchy Desktop Widgets",
       "slot": "R3",
       "lang": "QML",
       "note": "each monitor keeps its own desktop widgets",
@@ -326,6 +327,6 @@
   "wire": {
     "from": "camfix",
     "to": "kernel",
-    "label": "gpio 11"
+    "label": "GPIO 11"
   }
 }

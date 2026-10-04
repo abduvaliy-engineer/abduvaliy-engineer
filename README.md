@@ -3,7 +3,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/abduvaliy-engineer/abduvaliy-engineer/output/board-dark.svg">
-  <img alt="abduvaliy, ai software engineer focused on computer vision. A circuit board drawn from my GitHub: the CPU in the middle is me, the chips around it are my projects and contributions." src="https://raw.githubusercontent.com/abduvaliy-engineer/abduvaliy-engineer/output/board-light.svg" width="100%">
+  <img alt="Abduvaliy Abdulazizov, AI Software Engineer focused on Computer Vision. A circuit board drawn from my GitHub: the CPU in the middle is me, the chips around it are my projects and contributions." src="https://raw.githubusercontent.com/abduvaliy-engineer/abduvaliy-engineer/output/board-light.svg" width="100%">
 </picture>
 
 <picture>

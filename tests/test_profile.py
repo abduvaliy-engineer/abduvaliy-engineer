@@ -62,8 +62,20 @@ class OfflineBuild(unittest.TestCase):
 
     def test_foundation_stage_and_role_are_on_the_profile(self):
         for name in ("board-dark.svg", "terminal-light.svg"):
-            self.assertIn("foundation stage", self.files[name])
-            self.assertIn("ai software engineer", self.files[name])
+            self.assertIn("foundation stage", self.files[name].lower())
+            self.assertIn("ai software engineer", self.files[name].lower())
+
+    def test_board_words_start_with_a_capital(self):
+        root = ET.fromstring(self.files["board-dark.svg"])
+        for t in root.iter("{http://www.w3.org/2000/svg}text"):
+            first = (t.text or "").lstrip()[:1]
+            self.assertFalse(first.isalpha() and not first.isupper(), f"lowercase on the board: {t.text!r}")
+
+    def test_board_chips_use_real_names(self):
+        board_svg = self.files["board-light.svg"]
+        for item in CFG["projects"] + CFG["contributions"]:
+            if item.get("slot"):
+                self.assertIn(svg.esc(item["chip"]), board_svg)
 
 
 class BoardGeometry(unittest.TestCase):
