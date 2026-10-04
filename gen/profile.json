@@ -1,0 +1,331 @@
+{
+  "login": "abduvaliy-engineer",
+  "user": "abduvaliy",
+  "host": "omarchy",
+  "role": "ai software engineer",
+  "focus": "computer vision",
+  "study": "humblebee ai academy · foundation stage",
+  "fetch": [
+    [
+      "role",
+      "ai software engineer"
+    ],
+    [
+      "vision",
+      "opencv · yolo · face recognition · ocr · pytorch"
+    ],
+    [
+      "ai",
+      "llms · rag · ollama · mcp"
+    ],
+    [
+      "code",
+      "python · typescript · javascript · sql · c (learning)"
+    ],
+    [
+      "backend",
+      "fastapi · postgresql · redis · docker"
+    ],
+    [
+      "frontend",
+      "react"
+    ],
+    [
+      "os",
+      "omarchy linux (arch) · hyprland"
+    ],
+    [
+      "study",
+      "humblebee ai academy · foundation stage"
+    ]
+  ],
+  "about": "i build ai apps that can see: they read photos, watch cameras and recognize faces.",
+  "now": [
+    "an ai legal assistant that quotes the exact law, and says \"not sure\" when it isn't",
+    "my webcam fix got into the linux kernel; testing it on more distros",
+    "learning c, after writing my first kernel patch"
+  ],
+  "projects": [
+    {
+      "id": "cv",
+      "name": "camera ai dashboard",
+      "chip": "camera ai dashboard",
+      "kind": "team",
+      "lang": "TypeScript",
+      "slot": "L2",
+      "tier": 3,
+      "note": "team project: a web dashboard for ai cameras: face detections, history and camera setup."
+    },
+    {
+      "id": "ocr",
+      "name": "photo → text bot",
+      "chip": "photo → text",
+      "kind": "private",
+      "lang": "Python",
+      "slot": "L1",
+      "tier": 2,
+      "note": "send a photo to a telegram bot and get its text back. an ai model reads it and saves a summary."
+    },
+    {
+      "id": "camfix",
+      "name": "nitro camera fix",
+      "chip": "nitro camera fix",
+      "kind": "public",
+      "lang": "Shell",
+      "slot": "T",
+      "repo": "abduvaliy-engineer/acer-nitro-anv16s-camera-fix",
+      "note": "my laptop's webcam was dead on linux. found the cause, fixed it, and the fix got accepted into the linux kernel.",
+      "tier": 3,
+      "snapshot": {
+        "stars": 0,
+        "language": "Shell",
+        "pushed_at": "2026-10-04T06:49:08Z",
+        "size": 12,
+        "private": false
+      }
+    },
+    {
+      "id": "live",
+      "name": "live-view",
+      "chip": "live-view",
+      "kind": "public",
+      "lang": "Python",
+      "slot": "B",
+      "repo": "abduvaliy-engineer/live-view",
+      "note": "watch an ip camera live on your computer, with motion tracking and face recognition.",
+      "snapshot": {
+        "stars": 0,
+        "language": "Python",
+        "pushed_at": "2026-05-23T09:47:42Z",
+        "size": 12,
+        "private": false
+      }
+    },
+    {
+      "id": "mcp",
+      "name": "telegram ai bridge",
+      "chip": "telegram ai bridge",
+      "kind": "private",
+      "lang": "Python",
+      "slot": "L3",
+      "tier": 2,
+      "note": "lets ai assistants read a team's telegram chats. i split it into its own service and keep it running."
+    },
+    {
+      "id": "solo",
+      "name": "solo-tracker",
+      "kind": "personal",
+      "lang": "TypeScript",
+      "note": "a discord bot that turns self-improvement into a game: quests, xp, streaks and weekly reports."
+    },
+    {
+      "id": "vault",
+      "name": "insta-vault",
+      "kind": "public",
+      "lang": "Python",
+      "repo": "abduvaliy-engineer/insta-vault",
+      "note": "saves an instagram account's videos into obsidian notes before they disappear.",
+      "snapshot": {
+        "stars": 0,
+        "language": "Python",
+        "pushed_at": "2026-05-28T15:53:29Z",
+        "size": 14,
+        "private": false
+      }
+    },
+    {
+      "id": "themes",
+      "name": "omarchy-themes",
+      "kind": "public",
+      "lang": "Lua",
+      "repo": "abduvaliy-engineer/omarchy-themes",
+      "note": "my desktop themes for omarchy linux, ready to restore on a fresh install.",
+      "snapshot": {
+        "stars": 0,
+        "language": "Lua",
+        "pushed_at": "2026-09-27T04:47:18Z",
+        "size": 8689,
+        "private": false
+      }
+    }
+  ],
+  "contributions": [
+    {
+      "id": "kernel",
+      "label": "linux kernel · gpio fixes tree",
+      "chip": "linux kernel",
+      "slot": "R1",
+      "lang": "C",
+      "status": "accepted",
+      "date": "2026-10-02",
+      "additions": 16,
+      "deletions": 0,
+      "note": "fixes the dead webcam on acer nitro laptops",
+      "titles": [
+        "gpiolib: acpi: Ignore GPIO 11 interrupt on Acer Nitro V 16S AI"
+      ],
+      "href": "https://git.kernel.org/pub/scm/linux/kernel/git/andy/linux-gpio-intel.git/commit/?h=fixes&id=6da1f3437435c82eaa15b121022474bb358ffe20"
+    },
+    {
+      "id": "damx",
+      "repo": "PXDiv/Div-Acer-Manager-Max",
+      "chip": "Div-Acer-Manager-Max",
+      "slot": "R2",
+      "lang": "Python",
+      "note": "rgb keyboard lighting for acer laptops on linux",
+      "tier": 3,
+      "snapshot": {
+        "stars": 727,
+        "language": "C#",
+        "pushed_at": "2026-09-22T05:43:10Z",
+        "size": 48414,
+        "private": false,
+        "pulls": [
+          {
+            "number": 213,
+            "title": "feat: add ENEK5130 HID RGB support",
+            "additions": 197,
+            "deletions": 0,
+            "merged_at": "2026-07-14T13:42:29Z",
+            "url": "https://github.com/PXDiv/Div-Acer-Manager-Max/pull/213"
+          },
+          {
+            "number": 219,
+            "title": "fix: correct ENEK5130 zoom mapping and Nitro key setup",
+            "additions": 104,
+            "deletions": 27,
+            "merged_at": "2026-07-20T11:51:09Z",
+            "url": "https://github.com/PXDiv/Div-Acer-Manager-Max/pull/219"
+          }
+        ]
+      }
+    },
+    {
+      "id": "widgets",
+      "repo": "cyelis1224/omarchy-desktop-widgets",
+      "pr": 1,
+      "chip": "omarchy widgets",
+      "slot": "R3",
+      "lang": "QML",
+      "note": "each monitor keeps its own desktop widgets",
+      "snapshot": {
+        "stars": 10,
+        "language": "QML",
+        "pushed_at": "2026-09-16T20:07:49Z",
+        "size": 15326,
+        "private": false,
+        "pulls": [
+          {
+            "number": 1,
+            "title": "fix: isolate desktop widgets per monitor",
+            "additions": 155,
+            "deletions": 78,
+            "merged_at": "2026-09-14T15:31:35Z",
+            "url": "https://github.com/cyelis1224/omarchy-desktop-widgets/pull/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "academy",
+      "repo": "humblebeeai/int.academy-curriculum",
+      "lang": "MDX",
+      "note": "docs and version history for the academy's course site",
+      "stats": false,
+      "snapshot": {
+        "stars": 2,
+        "language": "MDX",
+        "pushed_at": "2026-09-07T12:30:52Z",
+        "size": 47450,
+        "private": false,
+        "pulls": [
+          {
+            "number": 67,
+            "title": "Fix React version compatibility and Docusaurus config",
+            "additions": 1971,
+            "deletions": 1296,
+            "merged_at": "2026-04-05T11:34:59Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/67"
+          },
+          {
+            "number": 71,
+            "title": "Update NLP resources and indexing page",
+            "additions": 9,
+            "deletions": 9,
+            "merged_at": "2026-04-08T10:04:52Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/71"
+          },
+          {
+            "number": 85,
+            "title": "docs: update curriculum foundations",
+            "additions": 178,
+            "deletions": 132,
+            "merged_at": "2026-07-11T05:47:20Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/85"
+          },
+          {
+            "number": 86,
+            "title": "docs: add matplotlib visualization resource",
+            "additions": 6750,
+            "deletions": 2177,
+            "merged_at": "2026-07-29T11:52:48Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/86"
+          },
+          {
+            "number": 89,
+            "title": "docs: add new API services to infra basics",
+            "additions": 18,
+            "deletions": 0,
+            "merged_at": "2026-08-06T08:21:27Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/89"
+          },
+          {
+            "number": 90,
+            "title": "feat(docs): add curriculum version history",
+            "additions": 24390,
+            "deletions": 1,
+            "merged_at": "2026-08-09T05:50:39Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/90"
+          },
+          {
+            "number": 91,
+            "title": "chore: prune oldest curriculum versions and fix version dropdown overflow",
+            "additions": 3,
+            "deletions": 5127,
+            "merged_at": "2026-08-09T06:20:41Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/91"
+          },
+          {
+            "number": 92,
+            "title": "chore: promote dev to main — curriculum versioning, specializations docs, API services",
+            "additions": 19322,
+            "deletions": 7,
+            "merged_at": "2026-08-09T06:29:49Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/92"
+          },
+          {
+            "number": 93,
+            "title": "docs: correct API resource titles and ordering in infra basics",
+            "additions": 16,
+            "deletions": 14,
+            "merged_at": "2026-08-09T07:27:15Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/93"
+          },
+          {
+            "number": 94,
+            "title": "docs: correct API resource titles and ordering in infra basics",
+            "additions": 16,
+            "deletions": 14,
+            "merged_at": "2026-08-09T07:35:51Z",
+            "url": "https://github.com/humblebeeai/int.academy-curriculum/pull/94"
+          }
+        ]
+      }
+    }
+  ],
+  "wire": {
+    "from": "camfix",
+    "to": "kernel",
+    "label": "gpio 11"
+  }
+}
