@@ -56,6 +56,9 @@ GLANCE = (30, 36, 60, 66)  # % of the loop: leave centre, arrive right, leave ri
 BLINK = (89, 90, 92, 93)   # % of the loop: lid half down, closed, half down again, open
 LOOK = 3  # pixels the iris glances to the right (toward the info)
 LID = 4   # grid row the upper lid reaches in the half-closed frame
+# (eye frame, box colour, detector confidence): the score drops as the eye closes.
+# 0.12 is under YOLO's default 0.25 threshold, so the closed eye reads as "not detected".
+DETECT = (("open", "green", 0.98), ("half", "accent", 0.61), ("shut", "red", 0.12))
 
 
 def runs(grid, cols, rows, colours, px):
@@ -202,16 +205,20 @@ def terminal(cfg, th, now):
     art, aw, ah, shift = eye(th)
     ex = 40 + (200 - aw) / 2
     ey = (y0 - 14 + block_bottom) / 2 - ah / 2 + 8
-    g = th["green"]
     m = 10
     bx0, by0, bx1, by1 = ex - m, ey - m, ex + aw + m, ey + ah + m
     corners = (f"M{bx0} {by0 + 16}V{by0}H{bx0 + 16} M{bx1 - 16} {by0}H{bx1}V{by0 + 16} "
                f"M{bx1} {by1 - 16}V{by1}H{bx1 - 16} M{bx0 + 16} {by1}H{bx0}V{by1 - 16}")
-    tag = "Eye 0.98"
-    logo = (f'<g transform="translate({ex:.1f} {ey:.1f})"><g class="eye">{art}</g></g>'
-            f'<path d="{corners}" fill="none" stroke="{g}" stroke-width="2.5"/>'
-            f'<rect x="{bx0}" y="{by0 - 18}" width="{width(tag, 10.5) + 12:.1f}" height="16" rx="2" fill="{g}"/>'
-            + text(bx0 + 6, by0 - 6, tag, 10.5, bg, 700))
+    # one detection box per eye frame; the same open/half/shut keyframes swap them in sync
+    boxes = []
+    for frame, colour, conf in DETECT:
+        c, tag = th[colour], f"Eye {conf:.2f}"
+        hidden = "" if frame == "open" else ' opacity="0"'  # motion off: only the open, green box
+        boxes.append(f'<g class="{frame}"{hidden}>'
+                     f'<path d="{corners}" fill="none" stroke="{c}" stroke-width="2.5"/>'
+                     f'<rect x="{bx0}" y="{by0 - 18}" width="{width(tag, 10.5) + 12:.1f}" height="16" rx="2" fill="{c}"/>'
+                     + text(bx0 + 6, by0 - 6, tag, 10.5, bg, 700) + "</g>")
+    logo = f'<g transform="translate({ex:.1f} {ey:.1f})"><g class="eye">{art}</g></g>' + "".join(boxes)
     lines.insert(1, logo)
 
     y = block_bottom + 34
