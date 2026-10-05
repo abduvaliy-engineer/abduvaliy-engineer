@@ -1,5 +1,6 @@
 """Terminal card, section headings and project/contribution cards."""
 import datetime as dt
+import random
 
 import board
 from svg import document, esc, fit, lang_color, text, width, wrap
@@ -59,6 +60,15 @@ LID = 4   # grid row the upper lid reaches in the half-closed frame
 # (eye frame, box colour, detector confidence): the score drops as the eye closes.
 # 0.12 is under YOLO's default 0.25 threshold, so the closed eye reads as "not detected".
 DETECT = (("open", "green", 0.98), ("half", "accent", 0.61), ("shut", "red", 0.12))
+# Typing intro, played once per page load (ms). Keystroke gaps come from a generator seeded
+# with the command, so every daily redraw types exactly the same way.
+CURSOR = "█"
+START_MS = 200         # the first prompt appears
+THINK_MS = (450, 260)  # pause before typing: first command (page just loaded), later ones
+KEY_MS = (35, 80)      # gap between keystrokes
+ENTER_MS = 200         # last letter → Enter
+LINE_MS = 35           # stagger between output lines
+NEXT_MS = 140          # last output line → next prompt
 
 
 def runs(grid, cols, rows, colours, px):
@@ -168,6 +178,35 @@ def goal(cfg, y, th, w, x0, size):
     return svg, css, start_x - width(start, 11.5)
 
 
+def appear(svg, ms):
+    """Show `svg` at `ms` and keep it there. With motion off it is simply visible."""
+    return f'<g class="on" style="animation-delay:{ms}ms">{svg}</g>'
+
+
+def typed(command, x, y, start, think, th, size):
+    """A command typed key by key, once.
+
+    Every prefix is its own <text> ending in a block cursor, shown only in its own time
+    window, so the cursor sits right after the last letter in whatever font the browser
+    picks. The windows touch end to end: exactly one prefix is on screen at a time.
+    Returns (svg, the moment Enter is pressed).
+    """
+    rnd = random.Random(command)
+    keys = [start + think]
+    for _ in command[1:]:
+        keys.append(keys[-1] + rnd.randint(*KEY_MS))
+    enter = keys[-1] + ENTER_MS
+    bounds = [start, *keys, enter]  # prefix k is on screen in [bounds[k], bounds[k + 1])
+    parts = [appear(text(x, y, "❯", size, th["green"], 700), start)]
+    for k in range(len(command) + 1):
+        a, b = bounds[k], bounds[k + 1]
+        parts.append(f'<g class="key" opacity="0" style="animation-delay:{a}ms;animation-duration:{b - a}ms">'
+                     f'<text x="{x + 20:.1f}" y="{y:.1f}" font-size="{size}" fill="{th["text"]}">'
+                     f'{esc(command[:k] + CURSOR)}</text></g>')
+    parts.append(appear(text(x + 20, y, command, size, th["text"]), enter))
+    return "".join(parts), enter
+
+
 def terminal(cfg, th, now):
     w = 880
     dark = th["name"] == "dark"
@@ -175,31 +214,27 @@ def terminal(cfg, th, now):
     size, lh = 14, 22
     gap = lh + 12  # from the last line of one output to the next prompt
     x0 = 32
-    lines = []  # in reveal order
-
-    def prompt(y, command):
-        # commands and user@host stay lowercase: that is what you really type in a terminal
-        return (text(x0, y, "❯", size, th["green"], 700)
-                + text(x0 + 20, y, command, size, th["text"]))
+    # (command, y, its output in reading order). Commands and user@host stay lowercase:
+    # that is what you really type in a terminal.
+    blocks = []
 
     y = 72
-    lines.append(prompt(y, "fastfetch"))
     info_x, val_x = 268, 268 + 92
     y0 = y + 34
     head = f'{cfg["user"]}@{cfg["host"]}'
-    lines.append(f'<text x="{info_x}" y="{y0}" font-size="{size}">'
-                 f'<tspan fill="{th["blue"]}" font-weight="700">{esc(cfg["user"])}</tspan>'
-                 f'<tspan fill="{th["faint"]}">@</tspan>'
-                 f'<tspan fill="{th["blue"]}" font-weight="700">{esc(cfg["host"])}</tspan></text>')
-    lines.append(text(info_x, y0 + lh, "-" * len(head), size, th["faint"]))
+    out = [f'<text x="{info_x}" y="{y0}" font-size="{size}">'
+           f'<tspan fill="{th["blue"]}" font-weight="700">{esc(cfg["user"])}</tspan>'
+           f'<tspan fill="{th["faint"]}">@</tspan>'
+           f'<tspan fill="{th["blue"]}" font-weight="700">{esc(cfg["host"])}</tspan></text>',
+           text(info_x, y0 + lh, "-" * len(head), size, th["faint"])]
     for i, (k, v) in enumerate(cfg["fetch"]):
         yy = y0 + lh * (i + 2)
-        lines.append(text(info_x, yy, k, size, th["blue"], 700)
-                     + text(val_x, yy, fit(v, size, w - 28 - val_x), size, th["text"]))
+        out.append(text(info_x, yy, k, size, th["blue"], 700)
+                   + text(val_x, yy, fit(v, size, w - 28 - val_x), size, th["text"]))
     pal_y = y0 + lh * (len(cfg["fetch"]) + 2) - 8
     palette = [th["red"], th["green"], th["accent"], th["blue"], th["purple"], "#39c5cf", th["muted"], th["text"]]
-    lines.append("".join(f'<rect x="{info_x + i * 22}" y="{pal_y}" width="19" height="12" rx="2" fill="{c}"/>'
-                         for i, c in enumerate(palette)))
+    out.append("".join(f'<rect x="{info_x + i * 22}" y="{pal_y}" width="19" height="12" rx="2" fill="{c}"/>'
+                       for i, c in enumerate(palette)))
     block_bottom = pal_y + 12
 
     art, aw, ah, shift = eye(th)
@@ -219,32 +254,44 @@ def terminal(cfg, th, now):
                      f'<rect x="{bx0}" y="{by0 - 18}" width="{width(tag, 10.5) + 12:.1f}" height="16" rx="2" fill="{c}"/>'
                      + text(bx0 + 6, by0 - 6, tag, 10.5, bg, 700) + "</g>")
     logo = f'<g transform="translate({ex:.1f} {ey:.1f})"><g class="eye">{art}</g></g>' + "".join(boxes)
-    lines.insert(1, logo)
+    blocks.append(("fastfetch", y, [logo] + out))
 
     y = block_bottom + 34
-    lines.append(prompt(y, "cat about.txt"))
+    cmd_y, out = y, []
     for line in wrap(cfg["about"], size, w - 2 * x0, 2):
         y += lh
-        lines.append(text(x0, y, line, size, th["text"]))
+        out.append(text(x0, y, line, size, th["text"]))
+    blocks.append(("cat about.txt", cmd_y, out))
     y += gap
-    lines.append(prompt(y, "cat now.txt"))
+    cmd_y, out = y, []
     for item in cfg["now"]:
         y += lh
-        lines.append(text(x0, y, "→", size, th["accent"], 700)
-                     + text(x0 + 20, y, fit(item, size, w - x0 - 20 - 28), size, th["text"]))
+        out.append(text(x0, y, "→", size, th["accent"], 700)
+                   + text(x0 + 20, y, fit(item, size, w - x0 - 20 - 28), size, th["text"]))
+    blocks.append(("cat now.txt", cmd_y, out))
     y += gap
-    lines.append(prompt(y, "cat plan.txt"))
+    cmd_y = y
     y += lh + 3  # a little air around the highlighted main goal
     goal_svg, goal_css, _ = goal(cfg, y, th, w, x0, size)
-    lines.append(goal_svg)
+    out = [goal_svg]
     y += 3
     for item in cfg["plan"]:
         y += lh
-        lines.append(checkbox(x0, y, th) + text(x0 + 20, y, fit(item, size, w - x0 - 20 - 28), size, th["text"]))
+        out.append(checkbox(x0, y, th) + text(x0 + 20, y, fit(item, size, w - x0 - 20 - 28), size, th["text"]))
+    blocks.append(("cat plan.txt", cmd_y, out))
     y += gap
-    lines.append(text(x0, y, "❯", size, th["green"], 700)
-                 + f'<rect class="cur" x="{x0 + 20}" y="{y - 13}" width="9" height="17" fill="{th["text"]}"/>')
     h = y + 26
+
+    # the intro, once: type a command, press Enter, its output fades in, then the next prompt
+    reveal, t = [], START_MS
+    for i, (command, cmd_y, out) in enumerate(blocks):
+        svg, enter = typed(command, x0, cmd_y, t, THINK_MS[0] if i == 0 else THINK_MS[1], th, size)
+        reveal.append(svg)
+        for j, piece in enumerate(out):
+            reveal.append(f'<g class="ln" style="animation-delay:{enter + j * LINE_MS}ms">{piece}</g>')
+        t = enter + (len(out) - 1) * LINE_MS + NEXT_MS
+    reveal.append(appear(text(x0, y, "❯", size, th["green"], 700)
+                         + f'<rect class="cur" x="{x0 + 20}" y="{y - 13}" width="9" height="17" fill="{th["text"]}"/>', t))
 
     stamp = now.astimezone(TASHKENT)
     body = [f'<defs><linearGradient id="hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{th["accent"]}"/>'
@@ -252,15 +299,17 @@ def terminal(cfg, th, now):
             f'<rect x="1.5" y="1.5" width="{w - 3}" height="{h - 3}" rx="12" fill="{bg}" stroke="url(#hb)" stroke-width="2"/>',
             text(x0, 27, f'{cfg["user"]}@{cfg["host"]}: ~', 11.5, th["muted"]),
             text(w - x0, 27, f"{stamp:%a %d %b}", 11.5, th["muted"], 400, "end"),
-            f'<line x1="2" y1="40" x2="{w - 2}" y2="40" stroke="{th["border"]}"/>']
-    for i, svg in enumerate(lines):
-        body.append(f'<g class="ln" style="animation-delay:{0.15 + i * 0.07:.2f}s">{svg}</g>')
+            f'<line x1="2" y1="40" x2="{w - 2}" y2="40" stroke="{th["border"]}"/>', *reveal]
     # one 7s loop: look ahead, glance right toward the info (pixel by pixel), look back, blink.
     # The blink swaps whole pixel frames (open → half → closed → half → open, ~280ms):
     # step-end holds each frame until the next keyframe, so the eye never squashes.
     g0, g1, g2, g3 = GLANCE
     b0, b1, b2, b3 = BLINK
     css = (".ln{animation:ln .45s ease-out both}@keyframes ln{from{opacity:0;transform:translateY(4px)}}"
+           # typing plays once: .on shows a piece at its delay and keeps it; .key shows one
+           # half-typed prefix for exactly its window (no fill, so it is hidden before and after)
+           ".on{animation:on 1ms step-end both}@keyframes on{from{opacity:0}}"
+           ".key{animation:key 1ms step-end}@keyframes key{from,to{opacity:1}}"
            ".cur{animation:cur 1.1s steps(1) infinite}@keyframes cur{50%{opacity:0}}"
            f".look{{animation:look {LOOP}s infinite}}"
            f"@keyframes look{{0%,{g0}%{{transform:translateX(0);animation-timing-function:steps({LOOK},end)}}"

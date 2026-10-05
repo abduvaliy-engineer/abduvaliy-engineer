@@ -6,6 +6,7 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "gen"))
@@ -198,13 +199,14 @@ class Terminal(unittest.TestCase):
                     yield span.text
 
     def test_words_start_with_a_capital_but_typed_things_stay_as_typed(self):
-        literals = {CFG["user"], CFG["host"], "@", f'{CFG["user"]}@{CFG["host"]}: ~',
-                    "fastfetch", "cat about.txt", "cat now.txt", "cat plan.txt"}
+        commands = ("fastfetch", "cat about.txt", "cat now.txt", "cat plan.txt")
+        literals = {CFG["user"], CFG["host"], "@", f'{CFG["user"]}@{CFG["host"]}: ~', *commands}
         seen = list(self.strings(ET.fromstring(self.svg())))
         self.assertIn(f'{CFG["user"]}@{CFG["host"]}: ~', seen)  # kept exactly as typed, on request
         for s in seen:
             first = s.lstrip()[:1]
-            if s in literals or not first.isalpha():
+            half_typed = any(c.startswith(s.rstrip(cards.CURSOR)) for c in commands)
+            if s in literals or half_typed or not first.isalpha():
                 continue
             self.assertTrue(first.isupper(), f"lowercase in the terminal: {s!r}")
 
@@ -291,6 +293,78 @@ class Terminal(unittest.TestCase):
         top_pad = (prompts[0] - 10) - 40          # first prompt's cap top to the title-bar line
         bottom_pad = (h - 1.5) - (prompts[-1] + 4)  # cursor bottom to the card edge
         self.assertLessEqual(abs(top_pad - bottom_pad), 4, f"{top_pad:.1f} vs {bottom_pad:.1f}")
+
+
+class Typing(unittest.TestCase):
+    """The intro types each command once; the eye, cursor and route keep looping."""
+    NS = "{http://www.w3.org/2000/svg}"
+    COMMANDS = ["fastfetch", "cat about.txt", "cat now.txt", "cat plan.txt"]
+
+    def svg(self, theme="dark"):
+        return cards.terminal(CFG, svg.THEMES[theme], board.when(NOW))
+
+    def blocks(self, theme="dark"):
+        """Reveal groups in document order: prompt, typed prefixes, entered command, output."""
+        found = []
+        for g in ET.fromstring(self.svg(theme)).iter(f"{self.NS}g"):
+            kind = g.get("class")
+            if kind not in ("on", "key", "ln"):
+                continue
+            style = dict(part.split(":", 1) for part in (g.get("style") or "").split(";") if part)
+            start = int(style["animation-delay"].removesuffix("ms"))
+            end = start + int(style.get("animation-duration", "0ms").removesuffix("ms"))
+            item = SimpleNamespace(start=start, end=end, text="".join(g.itertext()),
+                                   hidden=g.get("opacity") == "0")
+            if kind == "on" and item.text == "❯":
+                found.append(SimpleNamespace(prompt=item, states=[], entered=None, output=[]))
+            elif kind == "key":
+                found[-1].states.append(item)
+            elif kind == "on":
+                found[-1].entered = item
+            else:
+                found[-1].output.append(item)
+        return found
+
+    def test_each_command_is_typed_key_by_key(self):
+        typed = [b for b in self.blocks() if b.states]
+        self.assertEqual([b.entered.text for b in typed], self.COMMANDS)
+        for b in typed:
+            cmd = b.entered.text
+            self.assertEqual([s.text for s in b.states], [cmd[:k] + cards.CURSOR for k in range(len(cmd) + 1)])
+            self.assertEqual(b.states[0].start, b.prompt.start, "the cursor waits next to the prompt")
+            for a, c in zip(b.states, b.states[1:]):
+                self.assertEqual(a.end, c.start, "one prefix at a time: no gap, no overlap")
+            self.assertEqual(b.states[-1].end, b.entered.start, "Enter swaps in the finished command")
+            keys = [c.start - a.start for a, c in zip(b.states[1:], b.states[2:])]
+            self.assertTrue(all(30 <= k <= 120 for k in keys), keys)
+
+    def test_motion_off_shows_the_finished_card(self):
+        for b in self.blocks("light"):
+            self.assertFalse(b.prompt.hidden)
+            self.assertTrue(all(s.hidden for s in b.states), "no half-typed commands with motion off")
+            self.assertFalse(b.entered and b.entered.hidden)
+
+    def test_output_waits_for_its_command(self):
+        found = self.blocks()
+        for b in found[:-1]:
+            self.assertTrue(b.output)
+            self.assertTrue(all(o.start >= b.entered.start for o in b.output), "output before Enter")
+        for before, after in zip(found, found[1:]):
+            self.assertGreater(after.prompt.start, max(o.start for o in before.output), "prompt before output")
+        self.assertEqual(found[-1].states, [], "the last prompt just waits with a blinking cursor")
+        self.assertLessEqual(found[-1].prompt.start, 7500, "the whole intro stays short")
+
+    def test_typing_plays_once_while_the_rest_keeps_moving(self):
+        css = re.search(r"<style>(.*?)</style>", self.svg(), re.S)
+        self.assertIsNotNone(css)
+        rules = dict(re.findall(r"\.([\w-]+)\{([^{}]*)\}", css.group(1) if css else ""))
+        for once in ("on", "key", "ln"):
+            self.assertNotIn("infinite", rules[once])
+        for loop in ("look", "open", "half", "shut", "cur", "go"):
+            self.assertIn("infinite", rules[loop])
+
+    def test_every_redraw_types_the_same(self):
+        self.assertEqual(self.svg(), self.svg())
 
 
 class ProjectCards(unittest.TestCase):
