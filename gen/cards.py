@@ -6,7 +6,7 @@ from svg import document, esc, fit, lang_color, text, width, wrap
 
 TASHKENT = dt.timezone(dt.timedelta(hours=5))
 MONTHS = "jan feb mar apr may jun jul aug sep oct nov dec".split()
-HEADINGS = [("projects", "~/projects", "things i built"),
+HEADINGS = [("projects", "~/projects", "Things I built"),
             ("contributions", "~/contributions", "my code in other people's projects"),
             ("activity", "~/activity", "how often i code")]
 KIND = {"public": "green", "private": "purple", "team": "blue", "personal": "accent"}
@@ -307,10 +307,9 @@ def pill(x, y, label, colour, th):
 
 
 def mini_chip(x0, y0, w, h, lang, kind, th):
+    """Card thumbnail: gold pins for public projects (code anyone can open), silver for the rest."""
     b = (x0, y0, x0 + w, y0 + h)
-    hidden = kind in ("private", "team")
-    return ((board.courtyard(b, th, 3) if hidden else "")
-            + board.pins(b)
+    return (board.pins(b, gold=kind == "public")
             + f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" rx="4" fill="{th["chip"]}" stroke="{th["chip_hi"]}"/>'
             + f'<rect x="{x0 + 3}" y="{y0 + 3}" width="{w - 6}" height="{h - 6}" rx="2.5" fill="url(#sheen)"/>'
             + f'<circle cx="{x0 + 7}" cy="{y0 + 7}" r="1.8" fill="{th["chip_hi"]}"/>'
@@ -331,13 +330,13 @@ def project(p, info, th, now):
     parts.append(f'<circle cx="27" cy="128" r="5" fill="{lang_color(lang, th)}"/>')
     parts.append(text(38, 132, lang, 11.5, th["muted"]))
     x = 38 + width(lang, 11.5) + 12
-    badge, pw = pill(x, 132, p["kind"], th[KIND[p["kind"]]], th)
+    badge, pw = pill(x, 132, p["kind"].capitalize(), th[KIND[p["kind"]]], th)
     parts.append(badge)
     x += pw + 12
     if info.get("stars"):
         parts.append(text(x, 132, f"★ {info['stars']}", 11.5, th["muted"]))
     if info.get("pushed_at"):
-        parts.append(text(w - 20, 132, f"updated {ago(info['pushed_at'], now)}", 11, th["faint"], 400, "end"))
+        parts.append(text(w - 20, 132, f"Updated {ago(info['pushed_at'], now)}", 11, th["faint"], 400, "end"))
     label = f"{p['name']} ({p['kind']}, {lang}): {p['note']}"
     return document(w, h, "".join(parts), label, defs=board.defs(th))
 
