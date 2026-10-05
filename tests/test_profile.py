@@ -293,6 +293,41 @@ class Terminal(unittest.TestCase):
         self.assertLessEqual(abs(top_pad - bottom_pad), 4, f"{top_pad:.1f} vs {bottom_pad:.1f}")
 
 
+class ProjectCards(unittest.TestCase):
+    NS = "{http://www.w3.org/2000/svg}"
+
+    def card(self, p, theme="dark"):
+        info = fetch.offline(CFG)["projects"].get(p["id"])
+        return cards.project(p, info, svg.THEMES[theme], board.when(NOW))
+
+    def test_words_start_with_a_capital(self):
+        for p in CFG["projects"]:
+            for t in ET.fromstring(self.card(p)).iter(f"{self.NS}text"):
+                s = (t.text or "").strip()
+                core = s.rstrip("…")
+                if not s or (core in p["note"] and not p["note"].startswith(core)):
+                    continue  # empty, or a wrapped continuation of a sentence
+                self.assertFalse(s[0].isalpha() and not s[0].isupper(), f"{p['id']}: lowercase {s!r}")
+
+    def test_cards_use_the_same_real_names_as_the_board(self):
+        for p in CFG["projects"]:
+            if p.get("chip"):
+                self.assertEqual(p["name"], p["chip"])
+            self.assertIn(svg.esc(p["name"]), self.card(p, "light"))
+
+    def test_public_projects_get_gold_pins_and_nothing_is_dashed(self):
+        for p in CFG["projects"]:
+            for theme in ("dark", "light"):
+                out = self.card(p, theme)
+                public = p["kind"] == "public"
+                self.assertEqual("url(#pvg)" in out and "url(#phg)" in out, public, f"{p['id']}: gold pins")
+                self.assertEqual("url(#pv)" in out and "url(#ph)" in out, not public, f"{p['id']}: silver pins")
+                self.assertNotIn("stroke-dasharray", out, f"{p['id']}: dashed outline")
+
+    def test_projects_heading_starts_with_a_capital(self):
+        self.assertIn("Things I built", cards.heading(*cards.HEADINGS[0][1:], svg.THEMES["dark"]))
+
+
 class Safety(unittest.TestCase):
     def test_placeholder_text_is_rejected(self):
         bad = svg.document(10, 10, svg.text(1, 1, "None", 5, "#000"), "x")
