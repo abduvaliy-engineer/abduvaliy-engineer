@@ -311,8 +311,10 @@ class Typing(unittest.TestCase):
             if kind not in ("on", "key", "ln"):
                 continue
             style = dict(part.split(":", 1) for part in (g.get("style") or "").split(";") if part)
-            start = int(style["animation-delay"].removesuffix("ms"))
-            end = start + int(style.get("animation-duration", "0ms").removesuffix("ms"))
+            ms = {k: int(v.removesuffix("ms")) for k, v in style.items()}
+            delay, dur = ms.get("animation-delay", 0), ms.get("animation-duration", 0)
+            # .key is on screen during [delay, delay + dur); .on is hidden until delay + dur, then stays
+            start, end = (delay + dur, delay + dur) if kind == "on" else (delay, delay + dur)
             item = SimpleNamespace(start=start, end=end, text="".join(g.itertext()),
                                    hidden=g.get("opacity") == "0")
             if kind == "on" and item.text == "❯":
@@ -362,6 +364,25 @@ class Typing(unittest.TestCase):
             self.assertNotIn("infinite", rules[once])
         for loop in ("look", "open", "half", "shut", "cur", "go"):
             self.assertIn("infinite", rules[loop])
+
+    def test_pieces_that_stay_never_wait_for_a_1ms_reveal(self):
+        """Chrome sometimes never repaints a 1ms fill-forwards reveal: on the live profile
+        `fastfetch`, `❯ cat about.txt` and a prompt stayed hidden after the intro.
+
+        So a piece that stays is visible at rest. Its animation starts at once, hides it until
+        it is due and then simply ends; no fill is needed to show it or keep it.
+        """
+        out = self.svg()
+        css = re.search(r"<style>(.*?)</style>", out, re.S)
+        self.assertIsNotNone(css)
+        rule = dict(re.findall(r"\.([\w-]+)\{([^{}]*)\}", css.group(1) if css else ""))["on"]
+        self.assertNotRegex(rule, r"\b(both|forwards)\b")
+        self.assertIn("@keyframes on{from,to{opacity:0}}", out)
+        pieces = [g for g in ET.fromstring(out).iter(f"{self.NS}g") if g.get("class") == "on"]
+        self.assertEqual(len(pieces), 2 * len(self.COMMANDS) + 1)  # every prompt and command, final prompt
+        for g in pieces:
+            self.assertNotIn("animation-delay", g.get("style", ""), "".join(g.itertext()))
+            self.assertNotEqual(g.get("opacity"), "0")
 
     def test_every_redraw_types_the_same(self):
         self.assertEqual(self.svg(), self.svg())

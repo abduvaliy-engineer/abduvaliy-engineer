@@ -179,8 +179,13 @@ def goal(cfg, y, th, w, x0, size):
 
 
 def appear(svg, ms):
-    """Show `svg` at `ms` and keep it there. With motion off it is simply visible."""
-    return f'<g class="on" style="animation-delay:{ms}ms">{svg}</g>'
+    """Show `svg` from `ms` on and keep it there. With motion off it is simply visible.
+
+    The piece is visible at rest: its animation starts at once, hides it for `ms` and then just
+    ends. A 1ms fill-forwards reveal at `ms` is not reliable: Chrome sometimes never repaints
+    it, which left `fastfetch`, `❯ cat about.txt` and a prompt hidden on the live profile.
+    """
+    return f'<g class="on" style="animation-duration:{ms}ms">{svg}</g>'
 
 
 def typed(command, x, y, start, think, th, size):
@@ -306,9 +311,10 @@ def terminal(cfg, th, now):
     g0, g1, g2, g3 = GLANCE
     b0, b1, b2, b3 = BLINK
     css = (".ln{animation:ln .45s ease-out both}@keyframes ln{from{opacity:0;transform:translateY(4px)}}"
-           # typing plays once: .on shows a piece at its delay and keeps it; .key shows one
-           # half-typed prefix for exactly its window (no fill, so it is hidden before and after)
-           ".on{animation:on 1ms step-end both}@keyframes on{from{opacity:0}}"
+           # typing plays once: .on hides a piece until it is due, then the animation ends and the
+           # piece simply stays; .key shows one half-typed prefix for exactly its window. Neither
+           # needs a fill, so nothing waits on a 1ms window being painted.
+           ".on{animation:on 1ms step-end}@keyframes on{from,to{opacity:0}}"
            ".key{animation:key 1ms step-end}@keyframes key{from,to{opacity:1}}"
            ".cur{animation:cur 1.1s steps(1) infinite}@keyframes cur{50%{opacity:0}}"
            f".look{{animation:look {LOOP}s infinite}}"
