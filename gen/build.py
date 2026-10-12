@@ -34,7 +34,8 @@ def render(cfg, live, now):
         for slug, title, sub in cards.HEADINGS:
             files[f"h-{slug}-{name}.svg"] = cards.heading(title, sub, th)
         for p in cfg["projects"]:
-            files[f"project-{p['id']}-{name}.svg"] = cards.project(p, live["projects"].get(p["id"]), th, now)
+            if p.get("card", True):  # "card": false keeps a project on the board only
+                files[f"project-{p['id']}-{name}.svg"] = cards.project(p, live["projects"].get(p["id"]), th, now)
         for c in cfg["contributions"]:
             files[f"contrib-{c['id']}-{name}.svg"] = cards.contribution(c, live["contributions"].get(c["id"]), th)
     return files

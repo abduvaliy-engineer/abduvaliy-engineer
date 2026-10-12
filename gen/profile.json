@@ -42,6 +42,7 @@
   ],
   "about": "I build AI apps that can see: they read photos, watch cameras and recognize faces.",
   "now": [
+    "NitroSense for Linux: Acer's NitroSense app, rebuilt one to one; in active development",
     "An AI legal assistant that quotes the exact law, and says \"not sure\" when it isn't",
     "My webcam fix got into the Linux kernel; testing it on more distros",
     "Learning C, after writing my first kernel patch"
@@ -97,6 +98,24 @@
       }
     },
     {
+      "id": "nitrosense",
+      "name": "NitroSense for Linux",
+      "chip": "NitroSense for Linux",
+      "kind": "public",
+      "lang": "JavaScript",
+      "slot": "R3",
+      "repo": "abduvaliy-engineer/Nitro-Sense",
+      "note": "Acer's NitroSense control center, rebuilt for Linux: power modes, fans, keyboard RGB and battery settings.",
+      "tier": 3,
+      "snapshot": {
+        "stars": 3,
+        "language": "JavaScript",
+        "pushed_at": "2026-10-12T07:57:48Z",
+        "size": 2656,
+        "private": false
+      }
+    },
+    {
       "id": "live",
       "name": "Live View",
       "chip": "Live View",
@@ -105,6 +124,7 @@
       "slot": "B",
       "repo": "abduvaliy-engineer/live-view",
       "note": "Watch an IP camera live on your computer, with motion tracking and face recognition.",
+      "card": false,
       "snapshot": {
         "stars": 0,
         "language": "Python",
@@ -216,8 +236,6 @@
       "id": "widgets",
       "repo": "cyelis1224/omarchy-desktop-widgets",
       "pr": 1,
-      "chip": "Omarchy Desktop Widgets",
-      "slot": "R3",
       "lang": "QML",
       "note": "each monitor keeps its own desktop widgets",
       "snapshot": {
