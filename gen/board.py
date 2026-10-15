@@ -185,7 +185,7 @@ def chip_svg(chip, b, n, th):
     hidden = chip["kind"] in ("private", "team")
     parts = [
         courtyard(b, th, 4) if hidden else "",
-        pins(b, gold=chip["upstream"]),
+        pins(b, gold=chip["upstream"] or chip["kind"] == "public"),
         f'<rect x="{x0:.1f}" y="{y0:.1f}" width="{w:.1f}" height="{h:.1f}" rx="4" fill="{th["chip"]}" '
         f'stroke="{th["chip_hi"]}" stroke-width="1"/>',
         f'<rect x="{x0 + 3:.1f}" y="{y0 + 3:.1f}" width="{w - 6:.1f}" height="{h - 6:.1f}" rx="2.5" fill="url(#sheen)"/>',
